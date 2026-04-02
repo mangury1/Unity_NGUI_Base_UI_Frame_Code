@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -532,12 +532,13 @@ public abstract class BaseUIManager<T> : MonoBehaviour where T : BaseUIManager<T
         //}
 
         openWindow.GetGameObject.SetActive(true);
-
+        
         //뎁스 설정 end
 
         if(false == openWindow.CheckInitialized)
         {
             openWindow.Initialze();
+            CloseEventWindowsAdd(openWindow);
         }
 
         //Debug.LogError("___ OpenWindow Depth = " + openWindow.Depth);
@@ -643,6 +644,15 @@ public abstract class BaseUIManager<T> : MonoBehaviour where T : BaseUIManager<T
     }
 
     /// <summary>
+    /// 닫을때 실행할 이벤트 등록
+    /// </summary>
+    protected void CloseEventWindowsAdd(WindowUIFormBase wind)
+    {
+        if(null != wind)
+            wind.OnClosed += PreWindowOpen;
+    }
+
+    /// <summary>
     /// 모든 윈도우 닫기
     /// </summary>
     public void AllCloseWindows()
@@ -659,10 +669,6 @@ public abstract class BaseUIManager<T> : MonoBehaviour where T : BaseUIManager<T
                     continue;
                 }
                 closeWindow.ForciblyClose();
-                //if(_openWindowList.Count > 0)
-                //{
-                //    this._openWindowList.RemoveAt(i--);
-                //}
             }
             _openWindowList.Clear();
         }//2
@@ -738,6 +744,50 @@ public abstract class BaseUIManager<T> : MonoBehaviour where T : BaseUIManager<T
         }//2-2
 
         UpdatePreWindow();
+    }//1
+
+    /// <summary>
+    /// 이전 윈도우 열기 
+    /// </summary>
+    public void PreWindowOpen(WindowUIFormBase closeWindow)
+    {//1
+        if(null == closeWindow)
+            return;
+
+        string windName = closeWindow.gameObject.name;
+        Constant.WINDOW_TYPE windowType = closeWindow.WindowType;
+        bool checkUpdatePreWindow = true;
+
+        switch(windowType)
+        {
+            //툴팁일 경우 이전 윈도우UI를 갱신 하지 않는다.
+            case Constant.WINDOW_TYPE.TOOLTIP_WINDOW:
+                checkUpdatePreWindow = false;
+                break;
+
+            //닫히는 창이 고정형이면 닫지 않는다.
+            case Constant.WINDOW_TYPE.FITTED_WINDOW:
+                return;
+
+            case Constant.WINDOW_TYPE.TUTORIAL_WINDOW:
+                _isTutorial = false;
+                break;
+        }
+
+        //closeWindow.Close();
+
+        //오픈 리스트에서 삭제
+        for(int i = (this._openWindowList.Count - 1); i >= 0; --i)
+        {//2-2
+            if(string.Equals(windName, this._openWindowList[i]))
+            {
+                this._openWindowList.RemoveAt(i);
+                //break;
+            }
+        }//2-2
+
+        if(true == checkUpdatePreWindow)
+            UpdatePreWindow();
     }//1
 
     /// <summary>
