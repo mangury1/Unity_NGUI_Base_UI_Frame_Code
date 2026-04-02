@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -6,6 +6,9 @@ using UnityEngine;
 /// </summary>
 public class WindowUIFormBase : MonoBehaviour
 {//WindowUIFormBase
+
+    public event Action<WindowUIFormBase> OnClosed;
+
     protected UIPanel _uiPlanel = null;
 
     protected WindowBaseLockBackGroung _baseLockBg = null;
@@ -175,7 +178,8 @@ public class WindowUIFormBase : MonoBehaviour
         _checkActive = false;
 
         this.gameObject.SetActive(false);
-        GameUIManager.instance.PreWindowOpen(this.gameObject.name);
+        OnClosed?.Invoke(this);
+        //GameUIManager.instance.PreWindowOpen(this.gameObject.name);
     }
 
     /// <summary>
@@ -219,6 +223,7 @@ public class WindowUIFormBase : MonoBehaviour
             _baseLockBg.Release();
             GameObject.Destroy(_baseLockBg);
             _baseLockBg = null;
+            OnClosed = null;
         }
     }
 
@@ -556,17 +561,13 @@ public class ToolTipUIForm : WindowUIFormBase
             if(true == _openParameter.ContainsKey("CloseAction"))
                 _closeAction = _openParameter["CloseAction"] as Action;
         }
+
+        UICamera.onClick += OnClickClose;
     }
 
     public override void Close()
     {
-        if(null != _openParameter)
-        {
-            _openParameter.Clear();
-            _openParameter = null;
-        }
-
-        _checkOpen = false;
+        UICamera.onClick -= OnClickClose;
 
         if(null != _closeAction)
         {
@@ -574,44 +575,52 @@ public class ToolTipUIForm : WindowUIFormBase
             _closeAction = null;
         }
 
-        this.gameObject.SetActive(false);
-        GameUIManager.instance.OpenWindowListRemove(this.gameObject.name);
+        base.Close();
+
+        //this.gameObject.SetActive(false);
+        //GameUIManager.instance.OpenWindowListRemove(this.gameObject.name);
     }
 
-    protected void Update()
-    {
-        try
-        {
-            TouchClose();
-        }
-        catch(System.Exception e)
-        {
-            Debug.LogError(e.ToString());
-        }
-    }
+    //protected void LateUpdate()
+    //{
+    //    try
+    //    {
+    //        TouchClose();
+    //    }
+    //    catch(System.Exception e)
+    //    {
+    //        Debug.LogError(e.ToString());
+    //    }
+    //}
 
     /// <summary>
-    /// 터이 이벤트 발생시 UI 닫기
+    /// 터치 이벤트 발생시 UI 닫기
     /// </summary>
-    protected void TouchClose()
+//    protected void TouchClose()
+//    {
+//        if(_checkOpen && _checkActive && CheckInitialized)
+//        {
+//            if(true == _checkTouchClose)
+//            {
+//#if UNITY_EDITOR || UNITY_STANDALONE
+//                if(Input.GetMouseButton(0) || Input.GetMouseButton(1))
+//                {
+//                    Close();
+//                }
+//#else
+//            if(Input.touchCount > 0)
+//            {
+//                Close();
+//            }
+//#endif
+//            }
+//        }
+//    }
+
+    protected void OnClickClose(GameObject obj)
     {
-        if(CheckOpen && CheckActive && CheckInitialized)
-        {
-            if(true == _checkTouchClose)
-            {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                if(Input.GetMouseButton(0) || Input.GetMouseButton(1))
-                {
-                    Close();
-                }
-#else
-            if(Input.touchCount > 0)
-            {
-                Close();
-            }
-#endif
-            }
-        }
+       if(_checkOpen && _checkActive && _checkTouchClose)
+            Close();
     }
 }//ToolTipUIForm
 
