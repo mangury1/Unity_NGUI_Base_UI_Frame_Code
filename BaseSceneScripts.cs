@@ -12,7 +12,6 @@ public abstract class BaseSceneScripts
 
     /// <summary>
     /// 해당 씬 진입 시 터치 이펙트를 활성화할지 여부.
-    /// 기본값은 true. 인게임 씬 등에서 false로 오버라이드.
     /// </summary>
     public virtual bool TouchEffectEnabled { get { return true; } }
 
