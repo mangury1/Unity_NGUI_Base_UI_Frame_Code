@@ -346,7 +346,6 @@ public class SceneChangeManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 하위 호환용: 씬 로드 시 스크립트가 없을 경우 기존 switch-case 방식으로 폴백.
     /// 새로 추가하는 씬은 RegisterSceneScript<T>()를 씬 초기화 시점에 직접 호출할 것.
     /// 이 메서드는 기존 씬들의 동작을 유지하기 위한 임시 브릿지임.
     /// </summary>
