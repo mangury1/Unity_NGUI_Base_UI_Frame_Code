@@ -9,25 +9,7 @@ public enum CHANGE_GAME_SCENE_TYPE
     PLAY_GAME     // 게임으로 바로 이동
 }
 
-/// <summary>
-/// [개선사항 요약]
-///
-/// 1. AddScript의 switch-case 하드코딩 제거
-///    → RegisterSceneScript<T>() 제네릭 메서드로 교체.
-///      씬 추가 시 이 클래스를 수정하지 않아도 됨 (OCP 준수).
-///
-/// 2. CheckLoadScene 내부 하드코딩 조건문 제거
-///    → 터치 이펙트, 로딩 UI 처리를 각 씬 스크립트의 속성값으로 위임.
-///      (BaseSceneScripts.TouchEffectEnabled / LoadingType)
-///
-/// 3. Awake()에서 초기화
-///    → 기존 Instance getter 안에서 초기화하던 방식을 Awake()로 이동.
-///      초기화 타이밍 문제 방지.
-///
-/// 4. SceneChange / SceneChange2 이원화 정리
-///    → SceneChange()로 일원화. 내부적으로 AsyncOperation 반환이 필요한 경우
-///      GetLoadingSceneAsync 프로퍼티로 접근.
-/// </summary>
+
 public class SceneChangeManager : MonoBehaviour
 {
     protected readonly WaitForSeconds SLEEP_TIME = new WaitForSeconds(1);
