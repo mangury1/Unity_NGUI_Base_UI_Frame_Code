@@ -425,9 +425,10 @@ public class SceneChangeManager : MonoBehaviour
             case Constant.S_FISHING_GROUND_NAME:
                 RegisterSceneScript<FishingGroundSceneScripts>(sceneName);
                 break;
-
-            // ✅ 신규 씬 추가 시 여기 대신 씬 초기화 코드에서 아래처럼 호출하세요:
-            // SceneChangeManager.Instance.RegisterSceneScript<NewSceneScripts>(Constant.S_NEW_SCENE_NAME);
+            
+            default:
+                SceneChangeManager.Instance.RegisterSceneScript<NewSceneScripts>(Constant.S_NEW_SCENE_NAME);
+                break;           
         }
     }
 }
