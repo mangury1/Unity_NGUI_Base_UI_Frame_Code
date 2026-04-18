@@ -31,10 +31,6 @@ public class SceneChangeManager : MonoBehaviour
 
     public AsyncOperation GetLoadingSceneAsync { get { return _loadingSceneAsync; } }
 
-    // ---------------------------------------------------------------
-    // Singleton
-    // ---------------------------------------------------------------
-
     private static SceneChangeManager _instance;
     public static SceneChangeManager Instance
     {
@@ -60,9 +56,6 @@ public class SceneChangeManager : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------------
-    // 씬 스크립트 레지스트리
-    // ---------------------------------------------------------------
 
     private Dictionary<string, BaseSceneScripts> _sceneScriptsList = null;
     private Coroutine _checkLoadScene = null;
@@ -70,13 +63,8 @@ public class SceneChangeManager : MonoBehaviour
     /// <summary>진입할 게임 씬 타입</summary>
     public CHANGE_GAME_SCENE_TYPE ChangeGameSceneType { get; private set; }
 
-    // ---------------------------------------------------------------
-    // Unity 생명주기
-    // ---------------------------------------------------------------
-
     private void Awake()
     {
-        // 싱글턴 중복 방지
         if (_instance != null && _instance != this)
         {
             Destroy(gameObject);
@@ -86,7 +74,6 @@ public class SceneChangeManager : MonoBehaviour
         _instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // 초기화를 Awake로 이동 (기존: Instance getter 내부에서 호출)
         InitSceneScriptsList();
     }
 
@@ -101,10 +88,7 @@ public class SceneChangeManager : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------------
-    // 씬 스크립트 등록 (기존 AddScript switch-case 대체)
-    // ---------------------------------------------------------------
-
+    // 씬 스크립트 등록 
     private void InitSceneScriptsList()
     {
         if (_sceneScriptsList != null)
@@ -126,13 +110,7 @@ public class SceneChangeManager : MonoBehaviour
         _sceneScriptsList = null;
     }
 
-    /// <summary>
-    /// 씬 스크립트를 제네릭으로 등록한다.
-    /// 씬 추가 시 이 클래스를 수정하지 않고, 외부(씬 초기화 코드 등)에서 호출하면 된다.
-    ///
-    /// 사용 예:
-    ///   SceneChangeManager.Instance.RegisterSceneScript<MainRoomSceneScripts>(Constant.S_MAIN_ROOM_NAME);
-    /// </summary>
+    // 씬 스크립트 등록
     public void RegisterSceneScript<T>(string sceneName) where T : BaseSceneScripts, new()
     {
         if (_sceneScriptsList.ContainsKey(sceneName))
@@ -143,9 +121,8 @@ public class SceneChangeManager : MonoBehaviour
         _sceneScriptsList.Add(sceneName, script);
     }
 
-    /// <summary>
-    /// 씬 스크립트를 인스턴스로 직접 등록한다. (팩토리 패턴 등 외부 생성이 필요한 경우)
-    /// </summary>
+
+    // 씬 스크립트를 인스턴스로 직접 등록
     public void RegisterSceneScript(string sceneName, BaseSceneScripts script)
     {
         if (_sceneScriptsList.ContainsKey(sceneName))
@@ -189,15 +166,7 @@ public class SceneChangeManager : MonoBehaviour
             || CheckScene(Constant.S_CLIENT_NAME);
     }
 
-    // ---------------------------------------------------------------
-    // 씬 전환 (SceneChange / SceneChange2 일원화)
-    // ---------------------------------------------------------------
-
-    /// <summary>
-    /// 일반 씬 전환. EmptyScene을 경유해 메모리를 정리한 후 nextSceneName으로 이동한다.
-    /// 기존 SceneChange()와 동일한 흐름.
-    /// AsyncOperation이 필요하면 GetLoadingSceneAsync 프로퍼티로 접근.
-    /// </summary>
+    // 일반 씬 전환
     public void SceneChange(string sceneName, string scriptsName = null)
     {
         if (!string.IsNullOrEmpty(scriptsName))
@@ -246,10 +215,7 @@ public class SceneChangeManager : MonoBehaviour
             SceneManager.UnloadSceneAsync(sceneName);
     }
 
-    // ---------------------------------------------------------------
     // 내부 씬 전환 흐름
-    // ---------------------------------------------------------------
-
     private IEnumerator LoadEmptyScene()
     {
         string nowSceneName = SceneManager.GetActiveScene().name;
@@ -288,10 +254,8 @@ public class SceneChangeManager : MonoBehaviour
         _checkLoadScene = StartCoroutine(CheckLoadScene(_nextSceneName));
     }
 
-    /// <summary>
-    /// 실제 씬 로드 및 진입 처리.
-    /// 하드코딩 조건문 대신 각 씬 스크립트의 속성값(TouchEffectEnabled, LoadingType)을 읽어 처리한다.
-    /// </summary>
+
+    // 씬 로드 및 진입 처리.
     private IEnumerator CheckLoadScene(string sceneName)
     {
         // 로딩 전용 씬은 바로 전환 후 대기
@@ -311,7 +275,6 @@ public class SceneChangeManager : MonoBehaviour
             yield return null;
 
         // 씬 로드 후 스크립트가 없으면 등록 시도 (하위 호환용)
-        // 권장: 씬 초기화 코드에서 RegisterSceneScript<T>()를 직접 호출할 것
         TryAutoRegisterScript(sceneName);
 
         // 처리가 남아있을 수 있어 1초 대기
@@ -322,8 +285,6 @@ public class SceneChangeManager : MonoBehaviour
             yield return StartCoroutine(_sceneScriptsList[sceneName].OnEntry());
         }
 
-        // ✅ 기존: 하드코딩 if/else 조건문
-        // ✅ 개선: 씬 스크립트 속성값을 읽어 처리 (매니저가 씬을 몰라도 됨)
         ApplySceneSettings(sceneName);
 
         CurrentSceneName = sceneName;
